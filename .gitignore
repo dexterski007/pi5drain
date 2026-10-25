@@ -39,6 +39,9 @@ venv.bak/
 .env.*
 !.env.example
 *.local.json
+settings.json
+config.json
+!settings.example.json
 
 # Pixeldrain runtime data
 upload_history.json
