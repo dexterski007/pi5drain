@@ -1,0 +1,15 @@
+[Unit]
+Description=Pixeldrain RPi Web Uploader Service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/pixeldrain
+ExecStart=/usr/bin/python3 web_app.py --port 5000 --folder /home/pi/storage
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

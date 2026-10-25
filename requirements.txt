@@ -1,0 +1,4 @@
+requests>=2.28.0
+tqdm>=4.65.0
+customtkinter>=6.0.0
+flask>=3.0.0
