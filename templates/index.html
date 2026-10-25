@@ -33,58 +33,26 @@
       padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     }
 
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
+    .container { max-width: 1000px; margin: 0 auto; }
 
-    /* Header */
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      padding: 6px 0 16px 0;
-      border-bottom: 1px solid var(--card-border);
-      margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; padding: 6px 0 16px 0;
+      border-bottom: 1px solid var(--card-border); margin-bottom: 16px;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
+    .brand { display: flex; align-items: center; gap: 10px; }
     .brand h1 { font-size: 1.3rem; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
     .brand span { font-size: 0.75rem; background: #2563eb; color: #fff; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
+    .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    /* Buttons */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 9px 15px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      border-radius: var(--radius);
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      background: var(--card-border);
-      color: var(--text);
-      text-decoration: none;
-      min-height: 40px;
-      touch-action: manipulation;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 15px; font-size: 0.85rem; font-weight: 600; border-radius: var(--radius);
+      border: 1px solid transparent; cursor: pointer; transition: all 0.15s ease;
+      background: var(--card-border); color: var(--text); text-decoration: none;
+      min-height: 40px; touch-action: manipulation;
     }
-
     .btn:hover { background: #475569; }
     .btn:active { transform: scale(0.97); }
     .btn-primary { background: var(--primary); color: #fff; }
@@ -94,361 +62,173 @@
     .btn-danger:hover { background: var(--danger); color: #fff; }
     .btn-sm { padding: 6px 10px; font-size: 0.8rem; min-height: 34px; border-radius: 8px; }
 
-    /* System Status Bar */
     .status-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      margin-bottom: 16px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px; margin-bottom: 16px;
     }
-
-    .status-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 12px 14px;
-    }
-
+    .status-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 12px 14px; }
     .status-card .title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
     .status-card .val { font-size: 0.95rem; font-weight: 700; margin-top: 3px; word-break: break-all; }
 
-    /* Quick Options Bar */
     .options-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 10px 14px;
-      margin-bottom: 16px;
-      font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius);
+      padding: 10px 14px; margin-bottom: 16px; font-size: 0.85rem;
     }
+    .toggle-label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .toggle-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
 
-    .toggle-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .toggle-label input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--primary);
-      cursor: pointer;
-    }
-
-    /* Dropzone Card */
     .dropzone-card {
-      background: var(--card-bg);
-      border: 2px dashed var(--card-border);
-      border-radius: var(--radius);
-      padding: 24px 16px;
-      text-align: center;
-      margin-bottom: 16px;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      background: var(--card-bg); border: 2px dashed var(--card-border); border-radius: var(--radius);
+      padding: 24px 16px; text-align: center; margin-bottom: 16px; cursor: pointer; transition: all 0.2s ease;
     }
-
-    .dropzone-card:hover, .dropzone-card.dragover {
-      border-color: var(--primary);
-      background: #1e3a8a22;
-    }
-
+    .dropzone-card:hover, .dropzone-card.dragover { border-color: var(--primary); background: #1e3a8a22; }
     .dropzone-icon { font-size: 2.2rem; margin-bottom: 6px; }
     .dropzone-title { font-weight: 700; font-size: 1rem; }
     .dropzone-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
 
-    /* Active Uploads / Jobs */
-    .jobs-container {
-      margin-bottom: 16px;
+    /* Breadcrumb */
+    .breadcrumb-bar {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius);
+      padding: 10px 14px; margin-bottom: 12px; font-size: 0.88rem; min-height: 44px;
     }
+    .breadcrumb-item {
+      cursor: pointer; color: var(--primary); font-weight: 600; padding: 2px 6px;
+      border-radius: 6px; transition: background 0.15s;
+    }
+    .breadcrumb-item:hover { background: #334155; }
+    .breadcrumb-item.current { color: var(--text); cursor: default; font-weight: 700; }
+    .breadcrumb-item.current:hover { background: transparent; }
+    .breadcrumb-sep { color: var(--text-muted); margin: 0 2px; user-select: none; }
 
+    .jobs-container { margin-bottom: 16px; }
     .job-card {
-      background: #1e3a8a33;
-      border: 1px solid #3b82f688;
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      animation: fadeIn 0.3s ease;
+      background: #1e3a8a33; border: 1px solid #3b82f688; border-radius: var(--radius);
+      padding: 12px 14px; margin-bottom: 8px; animation: fadeIn 0.3s ease;
     }
-
     .job-header { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; word-break: break-all; }
     .job-stats { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); margin-top: 6px; flex-wrap: wrap; gap: 6px; }
+    .progress-bar { height: 8px; background: var(--card-border); border-radius: 4px; overflow: hidden; margin: 6px 0; }
+    .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s ease; }
 
-    .progress-bar {
-      height: 8px;
-      background: var(--card-border);
-      border-radius: 4px;
-      overflow: hidden;
-      margin: 6px 0;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--primary);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
-
-    /* Files Container */
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
     .section-title { font-size: 1.05rem; font-weight: 700; }
 
-    /* Desktop Table */
+    /* Folder row */
+    .folder-row { cursor: pointer; }
+    .folder-row:hover td { background: #1e3a8a22 !important; }
+    .folder-name { font-weight: 700; display: flex; align-items: center; gap: 8px; color: var(--primary); }
+    .folder-meta { font-size: 0.78rem; color: var(--text-muted); }
+
     .table-container {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      overflow-x: auto;
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); overflow-x: auto;
     }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.88rem;
-    }
-
-    th {
-      background: #0f172a88;
-      padding: 12px 14px;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--card-border);
-      vertical-align: middle;
-    }
-
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+    th { background: #0f172a88; padding: 12px 14px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--card-border); }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #33415533; }
-
     .file-name { font-weight: 600; word-break: break-all; display: flex; align-items: center; gap: 8px; }
 
-    .badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
     .badge-ready { background: #334155; color: #cbd5e1; }
     .badge-uploading { background: #1d4ed8; color: #bfdbfe; }
     .badge-uploaded { background: #065f46; color: #6ee7b7; }
     .badge-failed { background: #7f1d1d; color: #fca5a5; }
-
     .action-group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
-    /* Mobile Cards View */
-    .mobile-cards-view {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-    }
+    /* Mobile Cards */
+    .mobile-cards-view { display: none; flex-direction: column; gap: 10px; }
+    .file-card-mobile { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 14px; }
+    .mobile-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+    .mobile-card-title { font-weight: 700; font-size: 0.95rem; word-break: break-all; flex: 1; }
+    .mobile-card-size { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; font-weight: 600; }
+    .mobile-card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; }
+    .mobile-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .mobile-card-actions .btn { flex: 1; min-width: 80px; }
 
-    .file-card-mobile {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 14px;
+    /* Folder card on mobile */
+    .folder-card-mobile {
+      background: var(--card-bg); border: 1px solid var(--primary); border-radius: var(--radius);
+      padding: 14px; cursor: pointer; display: flex; align-items: center; gap: 12px;
     }
-
-    .mobile-card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .mobile-card-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      word-break: break-all;
-      flex: 1;
-    }
-
-    .mobile-card-size {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      white-space: nowrap;
-      font-weight: 600;
-    }
-
-    .mobile-card-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .mobile-card-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .mobile-card-actions .btn {
-      flex: 1;
-      min-width: 90px;
-    }
+    .folder-card-mobile:active { background: #1e3a8a33; }
+    .folder-card-mobile .folder-emoji { font-size: 1.5rem; }
+    .folder-card-mobile .folder-info { flex: 1; }
+    .folder-card-mobile .folder-info .name { font-weight: 700; font-size: 0.95rem; }
+    .folder-card-mobile .folder-info .meta { font-size: 0.75rem; color: var(--text-muted); }
+    .folder-card-mobile .folder-arrow { color: var(--text-muted); font-size: 1.2rem; }
 
     /* Modals */
     .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-      padding: 12px;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; padding: 12px;
     }
-
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-box {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      width: 100%;
-      max-width: 540px;
-      padding: 20px;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); width: 100%; max-width: 540px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .modal-title { font-size: 1.15rem; font-weight: 700; }
     .modal-close { background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 4px; }
     .modal-close:hover { color: #fff; }
-
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-    .form-control {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--card-border);
-      background: #0f172a;
-      color: var(--text);
-      font-size: 1rem; /* >= 16px prevents iOS Safari auto-zoom */
-    }
+    .form-control { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--card-border); background: #0f172a; color: var(--text); font-size: 1rem; }
     .form-control:focus { outline: none; border-color: var(--primary); }
-
     .form-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.88rem; }
     .form-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
 
-    /* Log Box */
     .log-terminal {
-      background: #090d16;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 12px;
-      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 0.78rem;
-      color: #38bdf8;
-      height: 320px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      word-break: break-all;
+      background: #090d16; border: 1px solid var(--card-border); border-radius: 8px; padding: 12px;
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.78rem;
+      color: #38bdf8; height: 320px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
     }
 
-    /* Toast */
     #toast {
-      position: fixed;
-      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      padding: 12px 20px;
-      background: #10b981;
-      color: #fff;
-      font-weight: 600;
-      font-size: 0.85rem;
-      border-radius: 30px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-      opacity: 0;
-      transition: all 0.25s ease;
-      z-index: 200;
-      max-width: 90vw;
-      text-align: center;
-      word-break: break-all;
+      position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      left: 50%; transform: translateX(-50%) translateY(20px);
+      padding: 12px 20px; background: #10b981; color: #fff; font-weight: 600; font-size: 0.85rem;
+      border-radius: 30px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      opacity: 0; transition: all 0.25s ease; z-index: 200; max-width: 90vw; text-align: center; word-break: break-all;
     }
-
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Responsive Adaptation for Mobile */
     @media (max-width: 768px) {
       body { padding: 10px; }
       header { flex-direction: column; align-items: flex-start; gap: 10px; }
       .header-actions { width: 100%; display: flex; justify-content: space-between; }
       .header-actions .btn { flex: 1; }
       .status-bar { grid-template-columns: 1fr; }
-      
-      /* Switch table to cards view on mobile */
       .table-container { display: none; }
       .mobile-cards-view { display: flex; }
-      
       .options-bar { flex-direction: column; align-items: flex-start; }
       .modal-box { padding: 16px; border-radius: 16px; }
+      .section-header { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
     <header>
       <div class="brand">
         <h1>☁️ Pixeldrain</h1>
         <span>RPi Web</span>
       </div>
       <div class="header-actions">
-        <button class="btn" onclick="fetchFiles()" title="Refresh file list">🔄 Refresh</button>
-        <button class="btn" onclick="openLogsModal()" title="View backend logs">📄 Logs</button>
-        <button class="btn btn-primary" onclick="openSettingsModal()" title="Configure API key and options">⚙️ Settings</button>
+        <button class="btn" onclick="fetchFiles()" title="Refresh">🔄 Refresh</button>
+        <button class="btn" onclick="openLogsModal()">📄 Logs</button>
+        <button class="btn btn-primary" onclick="openSettingsModal()">⚙️ Settings</button>
       </div>
     </header>
 
-    <!-- Status Cards -->
     <div class="status-bar">
       <div class="status-card">
         <div class="title">Designated Folder</div>
-        <div class="val" id="stat-folder" title="Isolated folder">Loading...</div>
+        <div class="val" id="stat-folder">Loading...</div>
       </div>
       <div class="status-card">
         <div class="title">Storage Space</div>
@@ -460,35 +240,42 @@
       </div>
     </div>
 
-    <!-- Quick Options Bar -->
     <div class="options-bar">
       <label class="toggle-label">
         <input type="checkbox" id="auto-upload-check" checked>
-        <span><strong>Auto-Upload:</strong> Send to Pixeldrain immediately when added</span>
+        <span><strong>Auto-Upload</strong> to Pixeldrain when added</span>
       </label>
       <label class="toggle-label">
         <input type="checkbox" id="auto-copy-check" onchange="toggleAutoCopy(this.checked)">
-        <span><strong>Auto-Copy Link:</strong> Copy URL to clipboard on completion</span>
+        <span><strong>Auto-Copy Link</strong> on completion</span>
       </label>
     </div>
 
-    <!-- Dropzone Card -->
     <div class="dropzone-card" id="dropzone" onclick="document.getElementById('file-input').click()">
       <div class="dropzone-icon">📥</div>
       <div class="dropzone-title">Tap or Drop Files Here</div>
-      <div class="dropzone-subtitle">Direct upload to your Raspberry Pi storage folder (supports all file names & spaces)</div>
+      <div class="dropzone-subtitle" id="dropzone-subtitle">Upload into: Root folder</div>
       <input type="file" id="file-input" multiple style="display: none;" onchange="handleFileSelect(this.files)">
     </div>
 
-    <!-- Active Upload Jobs Area -->
+    <!-- Breadcrumb Navigation -->
+    <div class="breadcrumb-bar" id="breadcrumb-bar">
+      <span class="breadcrumb-item current">📁 Root</span>
+    </div>
+
     <div class="jobs-container" id="jobs-container" style="display: none;">
       <div class="section-title" style="margin-bottom: 8px;">Active Pixeldrain Uploads</div>
       <div id="jobs-list"></div>
     </div>
 
-    <!-- Section Title -->
     <div class="section-header">
-      <div class="section-title">Folder Files (<span id="files-count">0</span>)</div>
+      <div class="section-title">
+        <span id="folder-count-label"></span>
+        <span id="files-count-label"></span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-sm" onclick="openNewFolderModal()">📁 New Folder</button>
+      </div>
     </div>
 
     <!-- Desktop Table View -->
@@ -496,7 +283,7 @@
       <table>
         <thead>
           <tr>
-            <th>File Name</th>
+            <th>Name</th>
             <th>Size</th>
             <th>Last Modified</th>
             <th>Pixeldrain Status</th>
@@ -504,20 +291,14 @@
           </tr>
         </thead>
         <tbody id="files-tbody">
-          <tr>
-            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
-              Loading folder contents...
-            </td>
-          </tr>
+          <tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 30px;">Loading...</td></tr>
         </tbody>
       </table>
     </div>
 
     <!-- Mobile Cards View -->
     <div class="mobile-cards-view" id="files-mobile-cards">
-      <div style="text-align: center; color: var(--text-muted); padding: 30px;">
-        Loading folder contents...
-      </div>
+      <div style="text-align: center; color: var(--text-muted); padding: 30px;">Loading...</div>
     </div>
   </div>
 
@@ -525,39 +306,46 @@
   <div class="modal-overlay" id="settings-modal">
     <div class="modal-box">
       <div class="modal-header">
-        <div class="modal-title">⚙️ Web Settings</div>
+        <div class="modal-title">⚙️ Settings</div>
         <button class="modal-close" onclick="closeSettingsModal()">✕</button>
       </div>
-
       <div class="form-group">
         <label>Pixeldrain API Key</label>
         <div style="display: flex; gap: 6px;">
-          <input type="password" id="input-api-key" class="form-control" placeholder="Enter API Key (UUID format)">
+          <input type="password" id="input-api-key" class="form-control" placeholder="Enter API Key">
           <button class="btn" onclick="toggleKeyVisibility()">👁</button>
         </div>
         <small style="color: var(--text-muted); display: block; margin-top: 6px; font-size: 0.78rem;">
-          Get your free API key at <a href="https://pixeldrain.com/user/api_keys" target="_blank" style="color: var(--primary);">pixeldrain.com/user/api_keys</a>
+          Get a free key at <a href="https://pixeldrain.com/user/api_keys" target="_blank" style="color: var(--primary);">pixeldrain.com/user/api_keys</a>
         </small>
       </div>
-
-      <div class="form-check">
-        <input type="checkbox" id="check-auto-copy-modal">
-        <label for="check-auto-copy-modal" style="cursor: pointer;">Auto-copy shareable link when upload finishes</label>
-      </div>
-
-      <div class="form-check">
-        <input type="checkbox" id="check-logging">
-        <label for="check-logging" style="cursor: pointer;">Enable backend file logging (pixeldrain.log)</label>
-      </div>
-
-      <div class="form-check">
-        <input type="checkbox" id="check-auto-upload-modal">
-        <label for="check-auto-upload-modal" style="cursor: pointer;">Auto-upload files when transferred into folder</label>
-      </div>
-
+      <div class="form-check"><input type="checkbox" id="check-auto-copy-modal"><label for="check-auto-copy-modal">Auto-copy link on upload completion</label></div>
+      <div class="form-check"><input type="checkbox" id="check-logging"><label for="check-logging">Enable file logging (pixeldrain.log)</label></div>
+      <div class="form-check"><input type="checkbox" id="check-auto-upload-modal"><label for="check-auto-upload-modal">Auto-upload when files are added to folder</label></div>
       <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 8px;">
         <button class="btn" onclick="closeSettingsModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Folder Modal -->
+  <div class="modal-overlay" id="newfolder-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">📁 Create New Folder</div>
+        <button class="modal-close" onclick="closeNewFolderModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Folder Name</label>
+        <input type="text" id="input-folder-name" class="form-control" placeholder="e.g. My Documents">
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
+        Will be created inside: <strong id="newfolder-parent-label">/</strong>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px;">
+        <button class="btn" onclick="closeNewFolderModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createFolder()">Create</button>
       </div>
     </div>
   </div>
@@ -566,18 +354,18 @@
   <div class="modal-overlay" id="logs-modal">
     <div class="modal-box" style="max-width: 760px;">
       <div class="modal-header">
-        <div class="modal-title">📄 System Logs</div>
+        <div class="modal-title">📄 Logs</div>
         <div style="display: flex; gap: 6px; align-items: center;">
-          <button class="btn btn-sm" onclick="fetchLogs()">🔄 Refresh</button>
+          <button class="btn btn-sm" onclick="fetchLogs()">🔄</button>
           <button class="btn btn-sm btn-danger" onclick="clearLogs()">Clear</button>
           <button class="modal-close" onclick="closeLogsModal()">✕</button>
         </div>
       </div>
-      <div class="log-terminal" id="log-content">Loading logs...</div>
+      <div class="log-terminal" id="log-content">Loading...</div>
     </div>
   </div>
 
-  <!-- Diagnostic / Error Modal -->
+  <!-- Diagnostic Modal -->
   <div class="modal-overlay" id="diag-modal">
     <div class="modal-box">
       <div class="modal-header">
@@ -589,34 +377,29 @@
         <div id="diag-code" style="font-size: 1.1rem; font-weight: 700; color: var(--danger);"></div>
       </div>
       <div style="margin-bottom: 12px;">
-        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">TECHNICAL MESSAGE</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">MESSAGE</div>
         <div id="diag-msg" style="background: #0f172a; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; margin-top: 4px; word-break: break-all;"></div>
       </div>
       <div style="margin-bottom: 16px;">
-        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">TROUBLESHOOTING HINT</div>
-        <div id="diag-hint" style="color: var(--text); font-size: 0.9rem; margin-top: 4px;"></div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">HINT</div>
+        <div id="diag-hint" style="font-size: 0.9rem; margin-top: 4px;"></div>
       </div>
-      <div style="text-align: right;">
-        <button class="btn" onclick="closeDiagModal()">Close</button>
-      </div>
+      <div style="text-align: right;"><button class="btn" onclick="closeDiagModal()">Close</button></div>
     </div>
   </div>
 
-  <!-- Toast Notification -->
   <div id="toast">Message</div>
 
   <script>
-    // State
     let currentConfig = {};
+    let currentPath = "";
     let pollingInterval = null;
     let autoCopyLink = localStorage.getItem("pixeldrain_auto_copy") !== "false";
     const completedJobIds = new Set();
 
-    // Initialize
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("auto-copy-check").checked = autoCopyLink;
       document.getElementById("check-auto-copy-modal").checked = autoCopyLink;
-
       fetchStatus();
       fetchFiles();
       startPollingJobs();
@@ -631,184 +414,253 @@
       showToast(val ? "Auto-copy link enabled" : "Auto-copy link disabled");
     }
 
-    // ---------------- API Calls ---------------- //
+    function navigateTo(path) {
+      currentPath = path || "";
+      fetchFiles();
+      // Update dropzone subtitle
+      const label = currentPath ? currentPath : "Root folder";
+      document.getElementById("dropzone-subtitle").innerText = "Upload into: " + label;
+    }
+
+    // ---- API ---- //
 
     async function fetchStatus() {
       try {
         const res = await fetch("/api/status");
         const data = await res.json();
         currentConfig = data;
-
         document.getElementById("stat-folder").innerText = data.watched_folder;
-        document.getElementById("stat-folder").title = data.watched_folder;
-
-        if (data.disk) {
-          document.getElementById("stat-disk").innerText = `${data.disk.free} free / ${data.disk.total}`;
-        }
-
+        if (data.disk) document.getElementById("stat-disk").innerText = `${data.disk.free} free / ${data.disk.total}`;
         const keyStat = document.getElementById("stat-key");
-        if (data.api_key_set) {
-          keyStat.innerText = `Configured (${data.masked_api_key})`;
-          keyStat.style.color = "var(--success)";
-        } else {
-          keyStat.innerText = "Missing (Click Settings)";
-          keyStat.style.color = "var(--warning)";
-        }
-
+        if (data.api_key_set) { keyStat.innerText = `Configured (${data.masked_api_key})`; keyStat.style.color = "var(--success)"; }
+        else { keyStat.innerText = "Missing (Click Settings)"; keyStat.style.color = "var(--warning)"; }
         document.getElementById("check-logging").checked = data.logging_enabled;
         document.getElementById("check-auto-upload-modal").checked = data.auto_upload_on_add;
         document.getElementById("auto-upload-check").checked = data.auto_upload_on_add;
-      } catch (err) {
-        console.error("Status fetch failed", err);
-      }
+      } catch (err) { console.error("Status fetch failed", err); }
     }
 
     async function fetchFiles() {
       try {
-        const res = await fetch("/api/files");
+        const qs = currentPath ? `?path=${encodeURIComponent(currentPath)}` : "";
+        const res = await fetch("/api/files" + qs);
         const data = await res.json();
-        const tbody = document.getElementById("files-tbody");
-        const mobileContainer = document.getElementById("files-mobile-cards");
-        document.getElementById("files-count").innerText = data.total_files || 0;
 
-        if (!data.files || data.files.length === 0) {
-          const emptyMsg = `<div style="text-align:center; color: var(--text-muted); padding: 30px;">
-            Designated folder is empty. Drop files above to get started.</div>`;
-          tbody.innerHTML = `<tr><td colspan="5">${emptyMsg}</td></tr>`;
-          mobileContainer.innerHTML = emptyMsg;
-          return;
-        }
+        if (!data.success) { showToast("Error: " + (data.error || "Failed")); return; }
 
-        // Render Desktop Table
-        tbody.innerHTML = data.files.map(f => {
-          let statusBadge = "";
-          let actions = "";
+        renderBreadcrumb(data.breadcrumb || []);
 
-          if (f.status === "uploading") {
-            statusBadge = `<span class="badge badge-uploading">Uploading...</span>`;
-            actions = `<button class="btn btn-sm" disabled>In Progress</button>`;
-          } else if (f.status === "uploaded" && f.pixeldrain) {
-            statusBadge = `<span class="badge badge-uploaded">Uploaded</span>`;
-            actions = `
-              <button class="btn btn-sm btn-primary" data-url="${escapeHtml(f.pixeldrain.view_url)}" onclick="copyToClipboard(this.dataset.url)">Copy Link</button>
-              <a href="${escapeHtml(f.pixeldrain.view_url)}" target="_blank" class="btn btn-sm">Open ↗</a>
-              <button class="btn btn-sm" data-name="${escapeHtml(f.name)}" onclick="triggerUpload(this.dataset.name)">Re-upload</button>
-            `;
-          } else {
-            statusBadge = `<span class="badge badge-ready">In Folder</span>`;
-            actions = `
-              <button class="btn btn-sm btn-primary" data-name="${escapeHtml(f.name)}" onclick="triggerUpload(this.dataset.name)">🚀 Upload</button>
-            `;
-          }
+        const folderCount = data.total_folders || 0;
+        const fileCount = data.total_files || 0;
+        document.getElementById("folder-count-label").innerText = folderCount > 0 ? `${folderCount} folder${folderCount !== 1 ? 's' : ''}` : '';
+        document.getElementById("files-count-label").innerText = `${fileCount} file${fileCount !== 1 ? 's' : ''}`;
 
-          actions += ` <button class="btn btn-sm btn-danger" data-name="${escapeHtml(f.name)}" onclick="deleteFile(this.dataset.name)">🗑</button>`;
-
-          return `
-            <tr>
-              <td><div class="file-name">📄 ${escapeHtml(f.name)}</div></td>
-              <td>${f.size_formatted}</td>
-              <td style="color: var(--text-muted); font-size: 0.8rem;">${f.modified}</td>
-              <td>${statusBadge}</td>
-              <td style="text-align: right;"><div class="action-group" style="justify-content: flex-end;">${actions}</div></td>
-            </tr>
-          `;
-        }).join("");
-
-        // Render Mobile Cards View
-        mobileContainer.innerHTML = data.files.map(f => {
-          let statusBadge = "";
-          let actions = "";
-
-          if (f.status === "uploading") {
-            statusBadge = `<span class="badge badge-uploading">Uploading...</span>`;
-            actions = `<button class="btn btn-sm" disabled style="width: 100%;">In Progress</button>`;
-          } else if (f.status === "uploaded" && f.pixeldrain) {
-            statusBadge = `<span class="badge badge-uploaded">Uploaded</span>`;
-            actions = `
-              <button class="btn btn-sm btn-primary" data-url="${escapeHtml(f.pixeldrain.view_url)}" onclick="copyToClipboard(this.dataset.url)">📋 Copy</button>
-              <a href="${escapeHtml(f.pixeldrain.view_url)}" target="_blank" class="btn btn-sm">Open ↗</a>
-              <button class="btn btn-sm" data-name="${escapeHtml(f.name)}" onclick="triggerUpload(this.dataset.name)">Re-upload</button>
-              <button class="btn btn-sm btn-danger" data-name="${escapeHtml(f.name)}" onclick="deleteFile(this.dataset.name)" style="min-width: 44px; flex: 0;">🗑</button>
-            `;
-          } else {
-            statusBadge = `<span class="badge badge-ready">In Folder</span>`;
-            actions = `
-              <button class="btn btn-sm btn-primary" data-name="${escapeHtml(f.name)}" onclick="triggerUpload(this.dataset.name)" style="flex: 2;">🚀 Upload to Pixeldrain</button>
-              <button class="btn btn-sm btn-danger" data-name="${escapeHtml(f.name)}" onclick="deleteFile(this.dataset.name)" style="min-width: 44px; flex: 0;">🗑</button>
-            `;
-          }
-
-          return `
-            <div class="file-card-mobile">
-              <div class="mobile-card-top">
-                <div class="mobile-card-title">📄 ${escapeHtml(f.name)}</div>
-                <div class="mobile-card-size">${f.size_formatted}</div>
-              </div>
-              <div class="mobile-card-meta">
-                <span>${f.modified}</span>
-                <span>${statusBadge}</span>
-              </div>
-              <div class="mobile-card-actions">
-                ${actions}
-              </div>
-            </div>
-          `;
-        }).join("");
-
-      } catch (err) {
-        console.error("Files fetch failed", err);
-      }
+        renderDesktopTable(data.folders || [], data.files || []);
+        renderMobileCards(data.folders || [], data.files || []);
+      } catch (err) { console.error("Files fetch failed", err); }
     }
 
-    async function triggerUpload(filename) {
-      if (!currentConfig.api_key_set) {
-        showToast("Please configure your Pixeldrain API Key first.");
-        openSettingsModal();
+    function renderBreadcrumb(parts) {
+      const bar = document.getElementById("breadcrumb-bar");
+      if (!parts || parts.length === 0) {
+        bar.innerHTML = '<span class="breadcrumb-item current">📁 Root</span>';
         return;
       }
 
+      let html = "";
+      parts.forEach((p, i) => {
+        const isLast = (i === parts.length - 1);
+        if (i > 0) html += '<span class="breadcrumb-sep">›</span>';
+        const icon = i === 0 ? "📁 " : "📂 ";
+        if (isLast) {
+          html += `<span class="breadcrumb-item current">${icon}${escapeHtml(p.name)}</span>`;
+        } else {
+          html += `<span class="breadcrumb-item" data-path="${escapeHtml(p.path)}" onclick="navigateTo(this.dataset.path)">${icon}${escapeHtml(p.name)}</span>`;
+        }
+      });
+      bar.innerHTML = html;
+    }
+
+    function renderDesktopTable(folders, files) {
+      const tbody = document.getElementById("files-tbody");
+
+      if (folders.length === 0 && files.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 30px;">This folder is empty. Drop files or create a subfolder.</td></tr>`;
+        return;
+      }
+
+      let html = "";
+
+      // Folders first
+      folders.forEach(f => {
+        html += `
+          <tr class="folder-row" data-path="${escapeHtml(f.rel_path)}" onclick="navigateTo(this.dataset.path)">
+            <td><div class="folder-name">📂 ${escapeHtml(f.name)}</div></td>
+            <td class="folder-meta">${f.item_count} item${f.item_count !== 1 ? 's' : ''}</td>
+            <td style="color: var(--text-muted); font-size: 0.8rem;">${f.modified}</td>
+            <td><span class="badge badge-ready">Folder</span></td>
+            <td style="text-align: right;">
+              <div class="action-group" style="justify-content: flex-end;" onclick="event.stopPropagation()">
+                <button class="btn btn-sm btn-danger" data-path="${escapeHtml(f.rel_path)}" data-name="${escapeHtml(f.name)}" onclick="deleteFolder(this.dataset.path, this.dataset.name)">🗑</button>
+              </div>
+            </td>
+          </tr>`;
+      });
+
+      // Files
+      files.forEach(f => {
+        let statusBadge = "", actions = "";
+
+        if (f.status === "uploading") {
+          statusBadge = `<span class="badge badge-uploading">Uploading...</span>`;
+          actions = `<button class="btn btn-sm" disabled>In Progress</button>`;
+        } else if (f.status === "uploaded" && f.pixeldrain) {
+          statusBadge = `<span class="badge badge-uploaded">Uploaded</span>`;
+          actions = `
+            <button class="btn btn-sm btn-primary" data-url="${escapeHtml(f.pixeldrain.view_url)}" onclick="copyToClipboard(this.dataset.url)">Copy</button>
+            <a href="${escapeHtml(f.pixeldrain.view_url)}" target="_blank" class="btn btn-sm">Open ↗</a>
+            <button class="btn btn-sm" data-rel="${escapeHtml(f.rel_path)}" onclick="triggerUpload(this.dataset.rel)">Re-upload</button>`;
+        } else {
+          statusBadge = `<span class="badge badge-ready">In Folder</span>`;
+          actions = `<button class="btn btn-sm btn-primary" data-rel="${escapeHtml(f.rel_path)}" onclick="triggerUpload(this.dataset.rel)">🚀 Upload</button>`;
+        }
+        actions += ` <button class="btn btn-sm btn-danger" data-rel="${escapeHtml(f.rel_path)}" onclick="deleteFile(this.dataset.rel)">🗑</button>`;
+
+        html += `
+          <tr>
+            <td><div class="file-name">📄 ${escapeHtml(f.name)}</div></td>
+            <td>${f.size_formatted}</td>
+            <td style="color: var(--text-muted); font-size: 0.8rem;">${f.modified}</td>
+            <td>${statusBadge}</td>
+            <td style="text-align: right;"><div class="action-group" style="justify-content: flex-end;">${actions}</div></td>
+          </tr>`;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function renderMobileCards(folders, files) {
+      const container = document.getElementById("files-mobile-cards");
+
+      if (folders.length === 0 && files.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 30px;">This folder is empty.</div>`;
+        return;
+      }
+
+      let html = "";
+
+      // Folder cards
+      folders.forEach(f => {
+        html += `
+          <div class="folder-card-mobile" data-path="${escapeHtml(f.rel_path)}" onclick="navigateTo(this.dataset.path)">
+            <div class="folder-emoji">📂</div>
+            <div class="folder-info">
+              <div class="name">${escapeHtml(f.name)}</div>
+              <div class="meta">${f.item_count} item${f.item_count !== 1 ? 's' : ''} · ${f.modified}</div>
+            </div>
+            <div class="folder-arrow">›</div>
+          </div>`;
+      });
+
+      // File cards
+      files.forEach(f => {
+        let statusBadge = "", actions = "";
+
+        if (f.status === "uploading") {
+          statusBadge = `<span class="badge badge-uploading">Uploading...</span>`;
+          actions = `<button class="btn btn-sm" disabled style="width: 100%;">In Progress</button>`;
+        } else if (f.status === "uploaded" && f.pixeldrain) {
+          statusBadge = `<span class="badge badge-uploaded">Uploaded</span>`;
+          actions = `
+            <button class="btn btn-sm btn-primary" data-url="${escapeHtml(f.pixeldrain.view_url)}" onclick="copyToClipboard(this.dataset.url)">📋 Copy</button>
+            <a href="${escapeHtml(f.pixeldrain.view_url)}" target="_blank" class="btn btn-sm">Open ↗</a>
+            <button class="btn btn-sm" data-rel="${escapeHtml(f.rel_path)}" onclick="triggerUpload(this.dataset.rel)">Re-upload</button>
+            <button class="btn btn-sm btn-danger" data-rel="${escapeHtml(f.rel_path)}" onclick="deleteFile(this.dataset.rel)" style="min-width: 44px; flex: 0;">🗑</button>`;
+        } else {
+          statusBadge = `<span class="badge badge-ready">In Folder</span>`;
+          actions = `
+            <button class="btn btn-sm btn-primary" data-rel="${escapeHtml(f.rel_path)}" onclick="triggerUpload(this.dataset.rel)" style="flex: 2;">🚀 Upload</button>
+            <button class="btn btn-sm btn-danger" data-rel="${escapeHtml(f.rel_path)}" onclick="deleteFile(this.dataset.rel)" style="min-width: 44px; flex: 0;">🗑</button>`;
+        }
+
+        html += `
+          <div class="file-card-mobile">
+            <div class="mobile-card-top">
+              <div class="mobile-card-title">📄 ${escapeHtml(f.name)}</div>
+              <div class="mobile-card-size">${f.size_formatted}</div>
+            </div>
+            <div class="mobile-card-meta"><span>${f.modified}</span><span>${statusBadge}</span></div>
+            <div class="mobile-card-actions">${actions}</div>
+          </div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    async function triggerUpload(relPath) {
+      if (!currentConfig.api_key_set) { showToast("Set API Key first."); openSettingsModal(); return; }
       try {
         const res = await fetch("/api/upload-to-pixeldrain", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ filename })
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rel_path: relPath })
         });
         const data = await res.json();
-        if (data.success) {
-          showToast(`Started upload for '${filename}'`);
-          fetchFiles();
-        } else {
-          showToast(`Error: ${data.error || "Failed to trigger upload"}`);
-          if (data.error_code) {
-            showDiagnostic(data.error_code, data.error, data.hint || "");
-          }
-        }
-      } catch (err) {
-        showToast("Network request failed");
-      }
+        if (data.success) { showToast(`Started upload`); fetchFiles(); }
+        else { showToast("Error: " + (data.error || "Failed")); if (data.error_code) showDiagnostic(data.error_code, data.error, data.hint || ""); }
+      } catch (err) { showToast("Network request failed"); }
     }
 
-    async function deleteFile(filename) {
-      if (!confirm(`Delete '${filename}' from the Raspberry Pi folder?`)) {
-        return;
-      }
-
+    async function deleteFile(relPath) {
+      if (!confirm(`Delete this file?`)) return;
       try {
-        const res = await fetch(`/api/files/${encodeURIComponent(filename)}`, { method: "DELETE" });
+        const res = await fetch("/api/files/delete", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rel_path: relPath })
+        });
         const data = await res.json();
-        if (data.success) {
-          showToast(`Deleted '${filename}'`);
-          fetchFiles();
-          fetchStatus();
-        } else {
-          showToast(`Error: ${data.error}`);
-        }
-      } catch (err) {
-        showToast("Failed to delete file");
-      }
+        if (data.success) { showToast("Deleted"); fetchFiles(); fetchStatus(); }
+        else showToast("Error: " + data.error);
+      } catch (err) { showToast("Delete failed"); }
     }
 
-    // ---------------- Real-Time Jobs Polling & Auto-Copy ---------------- //
+    async function deleteFolder(folderPath, folderName) {
+      if (!confirm(`Delete folder '${folderName}' and ALL its contents?`)) return;
+      try {
+        const res = await fetch("/api/folder/delete", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: folderPath })
+        });
+        const data = await res.json();
+        if (data.success) { showToast(`Deleted folder '${folderName}'`); fetchFiles(); fetchStatus(); }
+        else showToast("Error: " + data.error);
+      } catch (err) { showToast("Delete failed"); }
+    }
+
+    // ---- New Folder ---- //
+
+    function openNewFolderModal() {
+      document.getElementById("input-folder-name").value = "";
+      document.getElementById("newfolder-parent-label").innerText = currentPath || "/";
+      document.getElementById("newfolder-modal").classList.add("active");
+      setTimeout(() => document.getElementById("input-folder-name").focus(), 150);
+    }
+    function closeNewFolderModal() { document.getElementById("newfolder-modal").classList.remove("active"); }
+
+    async function createFolder() {
+      const name = document.getElementById("input-folder-name").value.trim();
+      if (!name) { showToast("Enter a folder name"); return; }
+      try {
+        const res = await fetch("/api/folder/create", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, path: currentPath })
+        });
+        const data = await res.json();
+        if (data.success) { showToast(`Created folder '${name}'`); closeNewFolderModal(); fetchFiles(); }
+        else showToast("Error: " + data.error);
+      } catch (err) { showToast("Create failed"); }
+    }
+
+    // ---- Jobs Polling ---- //
 
     function startPollingJobs() {
       if (pollingInterval) clearInterval(pollingInterval);
@@ -822,10 +674,8 @@
         const data = await res.json();
         const container = document.getElementById("jobs-container");
         const list = document.getElementById("jobs-list");
-
         const jobs = data.jobs || [];
 
-        // Check for newly completed jobs to auto-copy link
         jobs.forEach(job => {
           if (job.status === "completed" && !completedJobIds.has(job.id)) {
             completedJobIds.add(job.id);
@@ -838,247 +688,121 @@
         });
 
         const activeJobs = jobs.filter(j => j.status === "uploading" || j.status === "queued");
-
-        if (activeJobs.length === 0) {
-          container.style.display = "none";
-          return;
-        }
+        if (activeJobs.length === 0) { container.style.display = "none"; return; }
 
         container.style.display = "block";
         list.innerHTML = activeJobs.map(job => `
           <div class="job-card">
-            <div class="job-header">
-              <span>Uploading: ${escapeHtml(job.filename)}</span>
-              <span>${job.percent}%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: ${job.percent}%"></div>
-            </div>
+            <div class="job-header"><span>${escapeHtml(job.filename)}</span><span>${job.percent}%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${job.percent}%"></div></div>
             <div class="job-stats">
-              <span>Speed: ${job.speed_str || "Connecting..."}</span>
+              <span>${job.speed_str || "Connecting..."}</span>
               <span>${job.eta_str ? "ETA: " + job.eta_str : ""}</span>
               <button class="btn btn-sm btn-danger" onclick="cancelJob('${job.id}')">Cancel</button>
             </div>
           </div>
         `).join("");
-
-      } catch (err) {
-        // silent fail on poll
-      }
+      } catch (err) {}
     }
 
     async function cancelJob(jobId) {
-      try {
-        await fetch(`/api/jobs/${jobId}/cancel`, { method: "POST" });
-        showToast("Cancellation sent");
-      } catch (e) {
-        showToast("Cancel request failed");
-      }
+      try { await fetch(`/api/jobs/${jobId}/cancel`, { method: "POST" }); showToast("Cancel requested"); } catch (e) {}
     }
 
-    // ---------------- Dropzone File Transfers ---------------- //
+    // ---- Dropzone ---- //
 
     function setupDropzone() {
-      const dropzone = document.getElementById("dropzone");
-
-      ["dragenter", "dragover"].forEach(name => {
-        dropzone.addEventListener(name, (e) => {
-          e.preventDefault();
-          dropzone.classList.add("dragover");
-        });
-      });
-
-      ["dragleave", "drop"].forEach(name => {
-        dropzone.addEventListener(name, (e) => {
-          e.preventDefault();
-          dropzone.classList.remove("dragover");
-        });
-      });
-
-      dropzone.addEventListener("drop", (e) => {
-        const files = e.dataTransfer.files;
-        if (files.length > 0) handleFileSelect(files);
-      });
+      const dz = document.getElementById("dropzone");
+      ["dragenter", "dragover"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove("dragover"); }));
+      dz.addEventListener("drop", ev => { if (ev.dataTransfer.files.length > 0) handleFileSelect(ev.dataTransfer.files); });
     }
 
     async function handleFileSelect(fileList) {
       const autoUpload = document.getElementById("auto-upload-check").checked;
-
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
-        showToast(`Transferring '${file.name}' to RPi...`);
-
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("auto_upload", autoUpload ? "true" : "false");
-
+        showToast(`Transferring '${file.name}'...`);
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("path", currentPath);
+        fd.append("auto_upload", autoUpload ? "true" : "false");
         try {
-          const res = await fetch("/api/upload-to-folder", {
-            method: "POST",
-            body: formData
-          });
+          const res = await fetch("/api/upload-to-folder", { method: "POST", body: fd });
           const result = await res.json();
-          if (result.success) {
-            showToast(`Saved '${file.name}' into RPi folder!`);
-          } else {
-            showToast(`Error: ${result.error}`);
-          }
-        } catch (err) {
-          showToast(`Transfer failed for '${file.name}'`);
-        }
+          if (result.success) showToast(`Saved '${file.name}'`);
+          else showToast("Error: " + result.error);
+        } catch (err) { showToast(`Transfer failed for '${file.name}'`); }
       }
-
-      fetchFiles();
-      fetchStatus();
+      fetchFiles(); fetchStatus();
       document.getElementById("file-input").value = "";
     }
 
-    // ---------------- Settings & Modals ---------------- //
+    // ---- Settings ---- //
 
-    function openSettingsModal() {
-      document.getElementById("settings-modal").classList.add("active");
-    }
-
-    function closeSettingsModal() {
-      document.getElementById("settings-modal").classList.remove("active");
-    }
-
-    function toggleKeyVisibility() {
-      const inp = document.getElementById("input-api-key");
-      inp.type = inp.type === "password" ? "text" : "password";
-    }
+    function openSettingsModal() { document.getElementById("settings-modal").classList.add("active"); }
+    function closeSettingsModal() { document.getElementById("settings-modal").classList.remove("active"); }
+    function toggleKeyVisibility() { const i = document.getElementById("input-api-key"); i.type = i.type === "password" ? "text" : "password"; }
 
     async function saveSettings() {
       const apiKey = document.getElementById("input-api-key").value.trim();
-      const loggingEnabled = document.getElementById("check-logging").checked;
-      const autoUpload = document.getElementById("check-auto-upload-modal").checked;
       const autoCopy = document.getElementById("check-auto-copy-modal").checked;
-
       toggleAutoCopy(autoCopy);
-
       const payload = {
-        logging_enabled: loggingEnabled,
-        auto_upload_on_add: autoUpload,
+        logging_enabled: document.getElementById("check-logging").checked,
+        auto_upload_on_add: document.getElementById("check-auto-upload-modal").checked,
         auto_copy_link: autoCopy
       };
       if (apiKey) payload.api_key = apiKey;
-
       try {
-        const res = await fetch("/api/config", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+        const res = await fetch("/api/config", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         const data = await res.json();
-        if (data.success) {
-          showToast("Settings saved successfully.");
-          closeSettingsModal();
-          fetchStatus();
-        }
-      } catch (err) {
-        showToast("Failed to save settings");
-      }
+        if (data.success) { showToast("Settings saved"); closeSettingsModal(); fetchStatus(); }
+      } catch (err) { showToast("Save failed"); }
     }
 
-    // ---------------- Logs Viewer ---------------- //
+    // ---- Logs ---- //
 
-    function openLogsModal() {
-      document.getElementById("logs-modal").classList.add("active");
-      fetchLogs();
-    }
-
-    function closeLogsModal() {
-      document.getElementById("logs-modal").classList.remove("active");
-    }
-
+    function openLogsModal() { document.getElementById("logs-modal").classList.add("active"); fetchLogs(); }
+    function closeLogsModal() { document.getElementById("logs-modal").classList.remove("active"); }
     async function fetchLogs() {
-      const term = document.getElementById("log-content");
-      term.innerText = "Loading logs...";
-      try {
-        const res = await fetch("/api/logs?lines=200");
-        const data = await res.json();
-        if (data.lines) {
-          term.innerText = data.lines.join("");
-          term.scrollTop = term.scrollHeight;
-        }
-      } catch (err) {
-        term.innerText = "Could not fetch log lines.";
-      }
+      const t = document.getElementById("log-content"); t.innerText = "Loading...";
+      try { const r = await fetch("/api/logs?lines=200"); const d = await r.json(); if (d.lines) { t.innerText = d.lines.join(""); t.scrollTop = t.scrollHeight; } } catch (e) { t.innerText = "Error."; }
     }
+    async function clearLogs() { if (!confirm("Clear logs?")) return; await fetch("/api/logs/clear", { method: "POST" }); fetchLogs(); }
 
-    async function clearLogs() {
-      if (!confirm("Clear log file?")) return;
-      await fetch("/api/logs/clear", { method: "POST" });
-      fetchLogs();
-    }
+    // ---- Diagnostics ---- //
 
-    // ---------------- Diagnostics ---------------- //
-
-    function showDiagnostic(code, message, hint) {
+    function showDiagnostic(code, msg, hint) {
       document.getElementById("diag-code").innerText = code;
-      document.getElementById("diag-msg").innerText = message;
-      document.getElementById("diag-hint").innerText = hint || "Review the system logs for more details.";
+      document.getElementById("diag-msg").innerText = msg;
+      document.getElementById("diag-hint").innerText = hint || "Check the logs.";
       document.getElementById("diag-modal").classList.add("active");
     }
+    function closeDiagModal() { document.getElementById("diag-modal").classList.remove("active"); }
 
-    function closeDiagModal() {
-      document.getElementById("diag-modal").classList.remove("active");
-    }
-
-    // ---------------- Robust Clipboard (HTTPS & LAN HTTP Support) ---------------- //
+    // ---- Clipboard ---- //
 
     function copyToClipboard(text) {
       if (!text) return;
-
-      // Modern Clipboard API (works on localhost & HTTPS)
       if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-          showToast("Link copied to clipboard!");
-        }).catch(() => fallbackCopy(text));
-      } else {
-        fallbackCopy(text);
-      }
+        navigator.clipboard.writeText(text).then(() => showToast("Link copied!")).catch(() => fallbackCopy(text));
+      } else { fallbackCopy(text); }
     }
-
     function fallbackCopy(text) {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.top = "-9999px";
-      textArea.style.left = "-9999px";
-      textArea.setAttribute("readonly", "");
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-
-      let success = false;
-      try {
-        success = document.execCommand("copy");
-      } catch (err) {
-        success = false;
-      }
-      document.body.removeChild(textArea);
-
-      if (success) {
-        showToast("Link copied to clipboard!");
-      } else {
-        // Prompt user to copy directly
-        prompt("Copy Pixeldrain link:", text);
-      }
+      const ta = document.createElement("textarea"); ta.value = text;
+      ta.style.cssText = "position:fixed;top:-9999px;left:-9999px"; ta.setAttribute("readonly","");
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand("copy") ? showToast("Link copied!") : prompt("Copy:", text); } catch (e) { prompt("Copy:", text); }
+      document.body.removeChild(ta);
     }
 
     function showToast(msg) {
-      const toast = document.getElementById("toast");
-      toast.innerText = msg;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 3500);
+      const t = document.getElementById("toast"); t.innerText = msg; t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3500);
     }
 
-    function escapeHtml(str) {
-      return (str || "").replace(/[&<>"']/g, m => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
-      }[m]));
-    }
+    function escapeHtml(s) { return (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
   </script>
 </body>
 </html>

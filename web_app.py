@@ -7,6 +7,7 @@ Provides isolated access to a single designated folder, enabling direct browser 
 background Pixeldrain uploads, real-time progress tracking, and link history.
 
 Supports:
+- Subfolder browsing and creation within the designated folder
 - Filenames with spaces and unicode
 - Mobile-responsive web interface
 - Automatic link copying to clipboard
@@ -110,18 +111,18 @@ def save_history(history: Dict[str, Dict[str, Any]]) -> None:
         logger.error("Failed to save upload_history.json: %s", e)
 
 
-def sanitize_filename(filename: str) -> Optional[str]:
+def sanitize_name(name: str) -> Optional[str]:
     """
-    Sanitize filename while preserving spaces and unicode characters.
-    Strips directory separators and forbidden characters (<>:"/\\|?*).
+    Sanitize a single filename or folder name component.
+    Preserves spaces and unicode, strips forbidden characters.
+    Does NOT allow path separators or traversal.
     """
-    if not filename:
+    if not name:
         return None
 
-    cleaned = filename.strip().replace("\x00", "")
+    cleaned = name.strip().replace("\x00", "")
     base = os.path.basename(cleaned)
 
-    # Disallow reserved names or dot traversals
     if not base or base in (".", "..") or "/" in cleaned or "\\" in cleaned:
         return None
 
@@ -130,24 +131,68 @@ def sanitize_filename(filename: str) -> Optional[str]:
     return safe if safe and safe not in (".", "..") else None
 
 
-def get_safe_file_path(filename: str) -> Optional[Path]:
+def resolve_subpath(subpath: str) -> Optional[Path]:
     """
-    Ensure the requested file strictly resides inside WATCHED_FOLDER.
+    Resolve a relative subpath under WATCHED_FOLDER.
+    Returns the resolved absolute path if safe, None if traversal is detected.
+    The subpath can be '' or '.' for root, or 'sub/folder/path' for nested.
+    """
+    watched_resolved = WATCHED_FOLDER.resolve()
+
+    if not subpath or subpath in (".", "/", "\\"):
+        return watched_resolved
+
+    # Normalize separators and reject null bytes
+    normalized = subpath.replace("\\", "/").replace("\x00", "").strip("/")
+    if not normalized or normalized == ".":
+        return watched_resolved
+
+    # Check each component for traversal
+    parts = normalized.split("/")
+    for part in parts:
+        if part in (".", "..") or not part:
+            return None
+
+    target = (watched_resolved / normalized).resolve()
+
+    try:
+        target.relative_to(watched_resolved)
+    except ValueError:
+        return None
+
+    return target
+
+
+def get_safe_file_path(filename: str, subpath: str = "") -> Optional[Path]:
+    """
+    Build a safe absolute path for a file inside WATCHED_FOLDER (optionally inside a subpath).
     Preserves spaces and valid characters while preventing path traversal.
     """
-    safe_name = sanitize_filename(filename)
+    safe_name = sanitize_name(filename)
     if not safe_name:
         return None
 
-    watched_resolved = WATCHED_FOLDER.resolve()
-    target_path = (watched_resolved / safe_name).resolve()
+    parent = resolve_subpath(subpath)
+    if parent is None:
+        return None
 
+    target_path = (parent / safe_name).resolve()
+
+    # Ensure the result is still within the watched folder
     try:
-        target_path.relative_to(watched_resolved)
+        target_path.relative_to(WATCHED_FOLDER.resolve())
     except ValueError:
         return None
 
     return target_path
+
+
+def get_relative_path(absolute_path: Path) -> str:
+    """Return the path of a file/folder relative to WATCHED_FOLDER, using forward slashes."""
+    try:
+        return str(absolute_path.resolve().relative_to(WATCHED_FOLDER.resolve())).replace("\\", "/")
+    except ValueError:
+        return ""
 
 
 def get_disk_info(path: Path) -> Dict[str, str]:
@@ -224,18 +269,20 @@ def background_upload_worker(job_id: str, file_path: Path, api_key: str):
             ACTIVE_JOBS[job_id]["speed_str"] = "Done"
             ACTIVE_JOBS[job_id]["eta_str"] = "00:00"
 
-        # Update persistent history
+        # Update persistent history (key by relative path from WATCHED_FOLDER)
+        rel_path = get_relative_path(file_path)
         history = load_history()
-        history[file_path.name] = {
+        history[rel_path] = {
             "id": result["id"],
             "name": file_path.name,
+            "rel_path": rel_path,
             "size": result["size_bytes"],
             "view_url": result["view_url"],
             "download_url": result["download_url"],
             "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         save_history(history)
-        logger.info("Web upload finished for '%s' -> %s", file_path.name, result["view_url"])
+        logger.info("Web upload finished for '%s' -> %s", rel_path, result["view_url"])
 
     except PixeldrainUploadError as err:
         with JOBS_LOCK:
@@ -291,7 +338,7 @@ def api_save_config():
 
     if "api_key" in data:
         key = str(data["api_key"]).strip()
-        if key:  # Only update if non-empty
+        if key:
             config["api_key"] = key
 
     if "logging_enabled" in data:
@@ -310,68 +357,173 @@ def api_save_config():
 
 @app.route("/api/files", methods=["GET"])
 def api_list_files():
-    """List all files in the isolated watched folder along with Pixeldrain upload status."""
-    if not WATCHED_FOLDER.exists():
-        WATCHED_FOLDER.mkdir(parents=True, exist_ok=True)
+    """List files and subfolders in a directory within the watched folder."""
+    subpath = request.args.get("path", "").strip()
+
+    target_dir = resolve_subpath(subpath)
+    if target_dir is None:
+        return jsonify({"success": False, "error": "Invalid path (traversal blocked)."}), 403
+
+    if not target_dir.exists():
+        return jsonify({"success": False, "error": f"Directory does not exist."}), 404
+
+    if not target_dir.is_dir():
+        return jsonify({"success": False, "error": "Path is not a directory."}), 400
 
     history = load_history()
+    folders_list = []
     files_list = []
+    current_rel = get_relative_path(target_dir) if target_dir != WATCHED_FOLDER.resolve() else ""
 
     try:
-        entries = sorted(
-            [f for f in WATCHED_FOLDER.iterdir() if f.is_file() and not f.name.startswith(".")],
-            key=lambda x: x.stat().st_mtime,
-            reverse=True
-        )
+        entries = sorted(target_dir.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower()))
 
         with JOBS_LOCK:
-            active_by_filename = {
-                job["filename"]: job
+            active_by_relpath = {
+                job.get("rel_path", job.get("filename", "")): job
                 for job in ACTIVE_JOBS.values()
                 if job.get("status") in ["queued", "uploading"]
             }
 
         for entry in entries:
-            stat = entry.stat()
-            fname = entry.name
-            file_hist = history.get(fname)
-            active_job = active_by_filename.get(fname)
+            if entry.name.startswith("."):
+                continue
 
-            if active_job:
-                status = active_job["status"]
-                pixeldrain_info = None
-            elif file_hist:
-                status = "uploaded"
-                pixeldrain_info = file_hist
-            else:
-                status = "ready"
-                pixeldrain_info = None
+            if entry.is_dir():
+                # Count items inside
+                try:
+                    item_count = sum(1 for e in entry.iterdir() if not e.name.startswith("."))
+                except PermissionError:
+                    item_count = 0
 
-            files_list.append({
-                "name": fname,
-                "size_bytes": stat.st_size,
-                "size_formatted": format_bytes(stat.st_size),
-                "modified": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
-                "status": status,
-                "pixeldrain": pixeldrain_info,
-                "active_job_id": active_job.get("id") if active_job else None
-            })
+                folders_list.append({
+                    "name": entry.name,
+                    "type": "folder",
+                    "rel_path": get_relative_path(entry),
+                    "item_count": item_count,
+                    "modified": datetime.fromtimestamp(entry.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                })
+
+            elif entry.is_file():
+                stat = entry.stat()
+                fname = entry.name
+                rel_path = get_relative_path(entry)
+
+                file_hist = history.get(rel_path) or history.get(fname)
+                active_job = active_by_relpath.get(rel_path)
+
+                if active_job:
+                    status = active_job["status"]
+                    pixeldrain_info = None
+                elif file_hist:
+                    status = "uploaded"
+                    pixeldrain_info = file_hist
+                else:
+                    status = "ready"
+                    pixeldrain_info = None
+
+                files_list.append({
+                    "name": fname,
+                    "type": "file",
+                    "rel_path": rel_path,
+                    "size_bytes": stat.st_size,
+                    "size_formatted": format_bytes(stat.st_size),
+                    "modified": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+                    "status": status,
+                    "pixeldrain": pixeldrain_info,
+                    "active_job_id": active_job.get("id") if active_job else None
+                })
 
     except Exception as e:
-        logger.error("Error reading files in '%s': %s", WATCHED_FOLDER, e)
+        logger.error("Error reading directory '%s': %s", target_dir, e)
         return jsonify({"success": False, "error": str(e)}), 500
+
+    # Build breadcrumb parts
+    breadcrumb = [{"name": "Root", "path": ""}]
+    if current_rel:
+        parts = current_rel.split("/")
+        for i, part in enumerate(parts):
+            breadcrumb.append({
+                "name": part,
+                "path": "/".join(parts[:i+1])
+            })
 
     return jsonify({
         "success": True,
-        "folder": str(WATCHED_FOLDER.resolve()),
+        "current_path": current_rel,
+        "breadcrumb": breadcrumb,
+        "total_folders": len(folders_list),
         "total_files": len(files_list),
+        "folders": folders_list,
         "files": files_list
     })
 
 
+@app.route("/api/folder/create", methods=["POST"])
+def api_create_folder():
+    """Create a new subfolder inside the watched folder."""
+    data = request.get_json() or {}
+    folder_name = data.get("name", "").strip()
+    parent_path = data.get("path", "").strip()
+
+    safe_name = sanitize_name(folder_name)
+    if not safe_name:
+        return jsonify({"success": False, "error": "Invalid folder name."}), 400
+
+    parent = resolve_subpath(parent_path)
+    if parent is None:
+        return jsonify({"success": False, "error": "Invalid parent path."}), 403
+
+    target = (parent / safe_name).resolve()
+    try:
+        target.relative_to(WATCHED_FOLDER.resolve())
+    except ValueError:
+        return jsonify({"success": False, "error": "Path traversal detected."}), 403
+
+    if target.exists():
+        return jsonify({"success": False, "error": f"'{safe_name}' already exists."}), 409
+
+    try:
+        target.mkdir(parents=False, exist_ok=False)
+        rel = get_relative_path(target)
+        logger.info("Created folder: %s", rel)
+        return jsonify({"success": True, "folder": safe_name, "rel_path": rel})
+    except Exception as e:
+        logger.error("Failed to create folder '%s': %s", safe_name, e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/folder/delete", methods=["POST"])
+def api_delete_folder():
+    """Delete a subfolder and all its contents from the watched folder."""
+    data = request.get_json() or {}
+    folder_path = data.get("path", "").strip()
+
+    if not folder_path:
+        return jsonify({"success": False, "error": "Cannot delete root folder."}), 400
+
+    target = resolve_subpath(folder_path)
+    if target is None:
+        return jsonify({"success": False, "error": "Invalid path."}), 403
+
+    if target == WATCHED_FOLDER.resolve():
+        return jsonify({"success": False, "error": "Cannot delete the root storage folder."}), 403
+
+    if not target.is_dir():
+        return jsonify({"success": False, "error": "Path is not a directory."}), 400
+
+    try:
+        shutil.rmtree(target)
+        logger.info("Deleted folder: %s", folder_path)
+        return jsonify({"success": True, "message": f"Deleted folder '{folder_path}'"})
+    except Exception as e:
+        logger.error("Failed to delete folder '%s': %s", folder_path, e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/api/upload-to-folder", methods=["POST"])
 def api_upload_to_folder():
-    """Upload a file from browser into the watched folder (preserves spaces)."""
+    """Upload a file from browser into the watched folder or a subfolder (preserves spaces)."""
     if "file" not in request.files:
         return jsonify({"success": False, "error": "No file part in request"}), 400
 
@@ -379,18 +531,24 @@ def api_upload_to_folder():
     if not file or not file.filename:
         return jsonify({"success": False, "error": "No selected file"}), 400
 
-    filename = sanitize_filename(file.filename)
+    filename = sanitize_name(file.filename)
     if not filename:
         return jsonify({"success": False, "error": "Invalid filename"}), 400
 
-    target_path = get_safe_file_path(filename)
+    subpath = request.form.get("path", "").strip()
+
+    target_path = get_safe_file_path(filename, subpath)
     if not target_path:
         return jsonify({"success": False, "error": "Path traversal detected"}), 403
+
+    # Ensure parent directory exists
+    target_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
         file.save(str(target_path))
         file_size = target_path.stat().st_size
-        logger.info("Saved incoming file: '%s' (%s) in %s", filename, format_bytes(file_size), WATCHED_FOLDER)
+        rel_path = get_relative_path(target_path)
+        logger.info("Saved incoming file: '%s' (%s) at '%s'", filename, format_bytes(file_size), rel_path)
 
         config = load_config()
         job_id = None
@@ -401,6 +559,7 @@ def api_upload_to_folder():
                 ACTIVE_JOBS[job_id] = {
                     "id": job_id,
                     "filename": filename,
+                    "rel_path": rel_path,
                     "status": "queued",
                     "percent": 0,
                     "bytes_uploaded": 0,
@@ -419,6 +578,7 @@ def api_upload_to_folder():
         return jsonify({
             "success": True,
             "filename": filename,
+            "rel_path": rel_path,
             "size": format_bytes(file_size),
             "job_id": job_id
         })
@@ -430,18 +590,18 @@ def api_upload_to_folder():
 
 @app.route("/api/upload-to-pixeldrain", methods=["POST"])
 def api_upload_to_pixeldrain():
-    """Trigger background upload of an existing file in the watched folder (supports spaces)."""
+    """Trigger background upload of an existing file in the watched folder (supports subfolders)."""
     data = request.get_json() or {}
-    filename = data.get("filename")
-    if not filename:
-        return jsonify({"success": False, "error": "Filename required"}), 400
+    rel_path = data.get("rel_path") or data.get("filename", "")
+    if not rel_path:
+        return jsonify({"success": False, "error": "File path required"}), 400
 
-    target_path = get_safe_file_path(filename)
-    if not target_path or not target_path.is_file():
+    target = resolve_subpath(rel_path)
+    if not target or not target.is_file():
         return jsonify({
             "success": False,
             "error_code": ErrorCode.FILE_NOT_FOUND.code_str,
-            "error": f"File '{filename}' does not exist in the designated folder."
+            "error": f"File '{rel_path}' does not exist in the designated folder."
         }), 404
 
     config = load_config()
@@ -454,19 +614,24 @@ def api_upload_to_pixeldrain():
             "hint": "Set your API key in the web settings panel."
         }), 400
 
+    # Normalize the relative path key
+    safe_rel = get_relative_path(target)
+
     # Check if this file is already uploading
     with JOBS_LOCK:
         for job in ACTIVE_JOBS.values():
-            if job.get("filename") == filename and job.get("status") in ["queued", "uploading"]:
+            job_rel = job.get("rel_path", job.get("filename", ""))
+            if job_rel == safe_rel and job.get("status") in ["queued", "uploading"]:
                 return jsonify({"success": False, "error": "This file is already being uploaded.", "job_id": job["id"]}), 409
 
     job_id = str(uuid.uuid4())[:8]
-    total_size = target_path.stat().st_size
+    total_size = target.stat().st_size
 
     with JOBS_LOCK:
         ACTIVE_JOBS[job_id] = {
             "id": job_id,
-            "filename": filename,
+            "filename": target.name,
+            "rel_path": safe_rel,
             "status": "queued",
             "percent": 0,
             "bytes_uploaded": 0,
@@ -478,7 +643,7 @@ def api_upload_to_pixeldrain():
 
     thread = threading.Thread(
         target=background_upload_worker,
-        args=(job_id, target_path, api_key),
+        args=(job_id, target, api_key),
         daemon=True
     )
     thread.start()
@@ -517,9 +682,39 @@ def api_cancel_job(job_id: str):
             return jsonify({"success": True, "message": "Job cancelled"})
 
 
+@app.route("/api/files/delete", methods=["POST"])
+def api_delete_file():
+    """Delete a file from the watched folder (supports subfolders)."""
+    data = request.get_json() or {}
+    rel_path = data.get("rel_path", "").strip()
+
+    if not rel_path:
+        return jsonify({"success": False, "error": "File path required."}), 400
+
+    target = resolve_subpath(rel_path)
+    if not target or not target.is_file():
+        return jsonify({"success": False, "error": f"File '{rel_path}' not found."}), 404
+
+    try:
+        target.unlink()
+        history = load_history()
+        # Remove by rel_path or bare filename
+        for key in [rel_path, target.name]:
+            if key in history:
+                del history[key]
+        save_history(history)
+
+        logger.info("Deleted file '%s' from %s", rel_path, WATCHED_FOLDER)
+        return jsonify({"success": True, "message": f"Deleted '{rel_path}'"})
+    except Exception as e:
+        logger.error("Failed to delete '%s': %s", rel_path, e)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# Keep legacy DELETE route for backwards compatibility
 @app.route("/api/files/<path:filename>", methods=["DELETE"])
-def api_delete_file(filename: str):
-    """Delete a file from the watched folder (preserves spaces)."""
+def api_delete_file_legacy(filename: str):
+    """Legacy DELETE route: delete a file by name from the root watched folder."""
     target_path = get_safe_file_path(filename)
     if not target_path or not target_path.is_file():
         return jsonify({"success": False, "error": f"File '{filename}' not found."}), 404
@@ -527,9 +722,10 @@ def api_delete_file(filename: str):
     try:
         target_path.unlink()
         history = load_history()
-        if filename in history:
-            del history[filename]
-            save_history(history)
+        for key in [filename, get_relative_path(target_path)]:
+            if key in history:
+                del history[key]
+        save_history(history)
 
         logger.info("Deleted file '%s' from %s", filename, WATCHED_FOLDER)
         return jsonify({"success": True, "message": f"Deleted '{filename}'"})
