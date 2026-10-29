@@ -46,10 +46,25 @@ Open in any browser:
 
 ### Web Features:
 * **Single-Folder Scoped Access:** The web interface is strictly sandboxed to the specified folder with path traversal protection.
-* **Direct Browser Uploads:** Drag-and-drop or select files from your browser to save them directly into the Raspberry Pi folder.
+* **Upload From This Device:** Use the **Upload** button (or drag-and-drop onto the page) to save files from your phone, tablet, or computer straight into the current folder.
+* **Upload From the Web:** Paste a direct `http://` or `https://` link and the server downloads that file into the current folder — useful for grabbing a file without downloading it locally first.
 * **One-Click Pixeldrain Upload:** Upload any file in the folder to Pixeldrain with live speed, percentage bar, and ETA.
 * **Persistent Link History:** Shareable Pixeldrain links (`https://pixeldrain.com/u/<id>`) are remembered even across reboots.
 * **In-Browser Logs & Diagnostics:** View backend logs and detailed error code explanations (`E1001` - `E9999`) directly in the browser.
+
+### Adding Files From a Web Link
+
+1. Open the web interface and navigate to the folder you want the file in.
+2. Click **⬆️ Upload** in the header.
+3. Paste a direct file URL (for example `https://example.com/archive.zip`) and click **Add**.
+4. The browser shows a download/import status. The file lands in the current folder; if **Auto-Upload** is enabled, it is queued for Pixeldrain immediately.
+
+Notes:
+* Only `http://` and `https://` links are accepted.
+* Links pointing at loopback or reserved network addresses (for example `127.0.0.1` or cloud-metadata addresses) are blocked. Private LAN addresses remain allowed so you can import from a local NAS.
+* Redirects are followed (up to 5 hops), and each hop is validated.
+* If a file with the same name already exists, the import is saved as `name (1).ext`, `name (2).ext`, and so on.
+* The import requires enough free disk space; data is written to a temporary file and only moved into place once the download succeeds.
 
 ### Running Automatically on RPi Boot (systemd)
 

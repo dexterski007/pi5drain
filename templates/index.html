@@ -87,6 +87,28 @@
     .dropzone-title { font-weight: 700; font-size: 1rem; }
     .dropzone-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
 
+    /* Upload modal */
+    .modal-dropzone {
+      border: 2px dashed var(--card-border); border-radius: var(--radius);
+      padding: 18px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease;
+    }
+    .modal-dropzone:hover, .modal-dropzone.dragover { border-color: var(--primary); background: #1e3a8a22; }
+    .modal-dropzone .big-icon { font-size: 1.8rem; }
+    .modal-dropzone .title { font-weight: 700; font-size: 0.92rem; margin-top: 2px; }
+    .modal-dropzone .subtitle { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+    .modal-divider {
+      display: flex; align-items: center; gap: 10px; color: var(--text-muted);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; margin: 18px 0;
+    }
+    .modal-divider::before, .modal-divider::after { content: ""; flex: 1; height: 1px; background: var(--card-border); }
+    .url-row { display: flex; gap: 8px; }
+    .url-row .form-control { flex: 1; min-width: 0; }
+    .url-row .btn { white-space: nowrap; }
+    .url-status { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; min-height: 18px; word-break: break-word; }
+    .url-status.error { color: var(--danger); }
+    .url-status.success { color: var(--success); }
+    .destination-line { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px; word-break: break-all; }
+
     /* Breadcrumb */
     .breadcrumb-bar {
       display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
@@ -209,6 +231,11 @@
       .modal-box { padding: 16px; border-radius: 16px; }
       .section-header { flex-direction: column; align-items: flex-start; }
     }
+
+    @media (max-width: 480px) {
+      .header-actions { flex-wrap: wrap; }
+      .header-actions .btn { flex: 1 1 calc(50% - 6px); }
+    }
   </style>
 </head>
 <body>
@@ -219,9 +246,10 @@
         <span>RPi Web</span>
       </div>
       <div class="header-actions">
+        <button class="btn btn-primary" onclick="openUploadModal()">⬆️ Upload</button>
         <button class="btn" onclick="fetchFiles()" title="Refresh">🔄 Refresh</button>
         <button class="btn" onclick="openLogsModal()">📄 Logs</button>
-        <button class="btn btn-primary" onclick="openSettingsModal()">⚙️ Settings</button>
+        <button class="btn" onclick="openSettingsModal()">⚙️ Settings</button>
       </div>
     </header>
 
@@ -251,12 +279,13 @@
       </label>
     </div>
 
-    <div class="dropzone-card" id="dropzone" onclick="document.getElementById('file-input').click()">
+    <div class="dropzone-card" id="dropzone" onclick="openFilePicker()">
       <div class="dropzone-icon">📥</div>
       <div class="dropzone-title">Tap or Drop Files Here</div>
       <div class="dropzone-subtitle" id="dropzone-subtitle">Upload into: Root folder</div>
-      <input type="file" id="file-input" multiple style="display: none;" onchange="handleFileSelect(this.files)">
     </div>
+    <!-- Kept outside the dropzone: a click on the input must not re-trigger the dropzone handler. -->
+    <input type="file" id="file-input" multiple style="display: none;" onchange="handleFileSelect(this.files)">
 
     <!-- Breadcrumb Navigation -->
     <div class="breadcrumb-bar" id="breadcrumb-bar">
@@ -325,6 +354,43 @@
       <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 8px;">
         <button class="btn" onclick="closeSettingsModal()">Cancel</button>
         <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal-overlay" id="upload-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">⬆️ Upload Files</div>
+        <button class="modal-close" onclick="closeUploadModal()">✕</button>
+      </div>
+      <div class="destination-line">Destination: <strong id="upload-dest-label">/ (root)</strong></div>
+
+      <div class="modal-dropzone" id="upload-dropzone" onclick="openFilePicker()">
+        <div class="big-icon">📁</div>
+        <div class="title">Choose files from this device</div>
+        <div class="subtitle">Tap here or drag &amp; drop files</div>
+      </div>
+      <input type="file" id="modal-file-input" multiple style="display: none;" onchange="handleFileSelect(this.files)">
+
+      <div class="modal-divider">OR ADD FROM THE WEB</div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label for="input-url">Paste a direct link to a file</label>
+        <div class="url-row">
+          <input type="url" id="input-url" class="form-control" placeholder="https://example.com/file.zip"
+                 onkeydown="if (event.key === 'Enter') { event.preventDefault(); importFromUrl(); }">
+          <button class="btn btn-primary" id="import-url-btn" onclick="importFromUrl()">Add</button>
+        </div>
+        <small style="color: var(--text-muted); display: block; margin-top: 6px; font-size: 0.78rem;">
+          The server downloads the link straight into this folder. Large files can take a while.
+        </small>
+        <div class="url-status" id="url-status"></div>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <button class="btn" onclick="closeUploadModal()">Done</button>
       </div>
     </div>
   </div>
@@ -404,6 +470,7 @@
       fetchFiles();
       startPollingJobs();
       setupDropzone();
+      setupUploadDropzone();
     });
 
     function toggleAutoCopy(val) {
@@ -709,7 +776,21 @@
       try { await fetch(`/api/jobs/${jobId}/cancel`, { method: "POST" }); showToast("Cancel requested"); } catch (e) {}
     }
 
-    // ---- Dropzone ---- //
+    // ---- Dropzone & Upload modal ---- //
+
+    function openFilePicker() {
+      const modalOpen = document.getElementById("upload-modal").classList.contains("active");
+      document.getElementById(modalOpen ? "modal-file-input" : "file-input").click();
+    }
+
+    function openUploadModal() {
+      document.getElementById("upload-dest-label").innerText = currentPath || "/ (root)";
+      document.getElementById("url-status").innerText = "";
+      document.getElementById("url-status").className = "url-status";
+      document.getElementById("input-url").value = "";
+      document.getElementById("upload-modal").classList.add("active");
+    }
+    function closeUploadModal() { document.getElementById("upload-modal").classList.remove("active"); }
 
     function setupDropzone() {
       const dz = document.getElementById("dropzone");
@@ -718,24 +799,104 @@
       dz.addEventListener("drop", ev => { if (ev.dataTransfer.files.length > 0) handleFileSelect(ev.dataTransfer.files); });
     }
 
+    function setupUploadDropzone() {
+      const dz = document.getElementById("upload-dropzone");
+      ["dragenter", "dragover"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add("dragover"); }));
+      ["dragleave", "drop"].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.remove("dragover"); }));
+      dz.addEventListener("drop", ev => {
+        if (ev.dataTransfer.files.length > 0) handleFileSelect(ev.dataTransfer.files);
+      });
+    }
+
     async function handleFileSelect(fileList) {
+      if (!fileList || fileList.length === 0) return;
+
       const autoUpload = document.getElementById("auto-upload-check").checked;
+      const destPath = currentPath;
+      const status = document.getElementById("url-status");
+      const modalOpen = document.getElementById("upload-modal").classList.contains("active");
+      let saved = 0;
+
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
         showToast(`Transferring '${file.name}'...`);
         const fd = new FormData();
         fd.append("file", file);
-        fd.append("path", currentPath);
+        fd.append("path", destPath);
         fd.append("auto_upload", autoUpload ? "true" : "false");
         try {
           const res = await fetch("/api/upload-to-folder", { method: "POST", body: fd });
           const result = await res.json();
-          if (result.success) showToast(`Saved '${file.name}'`);
+          if (result.success) { saved++; showToast(`Saved '${file.name}'`); }
           else showToast("Error: " + result.error);
         } catch (err) { showToast(`Transfer failed for '${file.name}'`); }
       }
+
+      if (modalOpen && status) {
+        status.className = saved === fileList.length ? "url-status success" : "url-status error";
+        status.innerText = saved === fileList.length
+          ? `Saved ${saved} file${saved !== 1 ? "s" : ""} to this folder.`
+          : `Saved ${saved} of ${fileList.length} files. Check the toasts/logs for details.`;
+      }
+
       fetchFiles(); fetchStatus();
       document.getElementById("file-input").value = "";
+      document.getElementById("modal-file-input").value = "";
+    }
+
+    async function importFromUrl() {
+      const input = document.getElementById("input-url");
+      const btn = document.getElementById("import-url-btn");
+      const status = document.getElementById("url-status");
+      const url = input.value.trim();
+
+      if (!url) {
+        status.className = "url-status error";
+        status.innerText = "Paste a web link first.";
+        input.focus();
+        return;
+      }
+      if (!/^https?:\/\//i.test(url)) {
+        status.className = "url-status error";
+        status.innerText = "The link must start with http:// or https://.";
+        input.focus();
+        return;
+      }
+
+      const oldLabel = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = "Adding...";
+      status.className = "url-status";
+      status.innerText = "Downloading from the web... this can take a while for large files.";
+
+      try {
+        const res = await fetch("/api/upload-from-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: url,
+            path: currentPath,
+            auto_upload: document.getElementById("auto-upload-check").checked
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          status.className = "url-status success";
+          status.innerText = `Saved '${data.filename}' (${data.size})` + (data.job_id ? " — Pixeldrain upload queued." : ".");
+          input.value = "";
+          showToast(`Added '${data.filename}' from the web`);
+          fetchFiles(); fetchStatus();
+        } else {
+          status.className = "url-status error";
+          status.innerText = data.error || "Could not add that link.";
+        }
+      } catch (err) {
+        status.className = "url-status error";
+        status.innerText = "Network request failed while adding that link.";
+      } finally {
+        btn.disabled = false;
+        btn.innerText = oldLabel;
+      }
     }
 
     // ---- Settings ---- //

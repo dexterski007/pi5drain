@@ -15,18 +15,23 @@ Supports:
 """
 
 import argparse
+import ipaddress
 import json
 import logging
 import os
+import re
 import shutil
+import socket
 import sys
 import threading
 import time
+import urllib.parse
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
+import requests
 from flask import Flask, jsonify, render_template, request
 
 # Import uploader engine from pixeldrain_uploader.py
@@ -55,6 +60,13 @@ app.config["MAX_CONTENT_LENGTH"] = None  # No arbitrary Flask limit on incoming 
 ACTIVE_JOBS: Dict[str, Dict[str, Any]] = {}
 JOBS_LOCK = threading.Lock()
 WATCHED_FOLDER = DEFAULT_STORAGE_FOLDER
+
+# Remote ("from the web") import limits
+URL_IMPORT_MAX_REDIRECTS = 5
+URL_IMPORT_CHUNK_SIZE = 1024 * 1024
+URL_IMPORT_TIMEOUT = (15, 60)  # (connect seconds, read seconds)
+URL_IMPORT_MIN_FREE_BYTES = 64 * 1024 * 1024
+URL_IMPORT_MAX_URL_LENGTH = 4096
 
 
 # ============================================================================
@@ -207,6 +219,267 @@ def get_disk_info(path: Path) -> Dict[str, str]:
         }
     except Exception:
         return {"total": "N/A", "used": "N/A", "free": "N/A", "percent_used": "0%"}
+
+
+# ============================================================================
+# REMOTE URL IMPORT ("ADD FROM WEB")
+# ============================================================================
+
+class UrlImportError(Exception):
+    """Raised when a remote URL cannot be imported into the watched folder."""
+
+    def __init__(self, message: str, status_code: int = 400):
+        super().__init__(message)
+        self.message = message
+        self.status_code = status_code
+
+
+def validate_remote_url(url: str) -> None:
+    """
+    Validate an http(s) URL before fetching it.
+    Blocks loopback, link-local, multicast, reserved and unspecified targets so a
+    link cannot be used to reach services on the Pi/host itself (e.g. cloud metadata).
+    Private LAN addresses are allowed, since importing from a local NAS is a valid use case.
+    """
+    if not url:
+        raise UrlImportError("Paste a web link first.")
+
+    if len(url) > URL_IMPORT_MAX_URL_LENGTH:
+        raise UrlImportError("That link is too long.")
+
+    try:
+        parts = urllib.parse.urlsplit(url)
+    except ValueError as exc:
+        raise UrlImportError(f"Invalid link: {exc}")
+
+    scheme = parts.scheme.lower()
+    if scheme not in ("http", "https"):
+        raise UrlImportError("Only http:// and https:// links are supported.")
+
+    host = parts.hostname
+    if not host:
+        raise UrlImportError("That link has no hostname.")
+
+    if host.lower() in ("localhost", "localhost.localdomain"):
+        raise UrlImportError("Links to localhost are blocked.")
+
+    try:
+        port = parts.port or (443 if scheme == "https" else 80)
+    except ValueError:
+        raise UrlImportError("That link has an invalid port.")
+
+    try:
+        addresses = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    except (socket.gaierror, UnicodeError):
+        raise UrlImportError(f"Could not resolve the host '{host}'.")
+
+    for _family, _type, _proto, _canonname, sockaddr in addresses:
+        try:
+            ip = ipaddress.ip_address(sockaddr[0])
+        except ValueError:
+            continue
+
+        mapped = getattr(ip, "ipv4_mapped", None)
+        if mapped is not None:
+            ip = mapped
+
+        if (ip.is_loopback or ip.is_link_local or ip.is_multicast
+                or ip.is_unspecified or ip.is_reserved):
+            raise UrlImportError(
+                "That link points to a local or reserved network address, which is blocked."
+            )
+
+
+def filename_from_content_disposition(header: Optional[str]) -> Optional[str]:
+    """Extract a filename from a Content-Disposition header (including RFC 5987)."""
+    if not header:
+        return None
+
+    match = re.search(r"filename\*\s*=\s*([^']*)'[^']*'([^;]+)", header, flags=re.IGNORECASE)
+    if match:
+        charset = (match.group(1) or "utf-8").strip() or "utf-8"
+        value = match.group(2).strip().strip('"')
+        try:
+            return urllib.parse.unquote(value, encoding=charset, errors="replace")
+        except LookupError:
+            return urllib.parse.unquote(value)
+
+    match = re.search(r'filename\s*=\s*("([^"]*)"|[^;]+)', header, flags=re.IGNORECASE)
+    if match:
+        value = match.group(2) if match.group(2) is not None else match.group(1)
+        return value.strip().strip('"')
+
+    return None
+
+
+def extract_remote_filename(response: requests.Response, url: str) -> str:
+    """Pick the best filename for a downloaded URL: header first, then URL path."""
+    candidate = filename_from_content_disposition(response.headers.get("Content-Disposition"))
+
+    if not candidate:
+        path = urllib.parse.urlsplit(response.url or url).path
+        candidate = urllib.parse.unquote(path.rsplit("/", 1)[-1])
+
+    if candidate:
+        # Some servers send a full path; keep only the final component.
+        candidate = candidate.replace("\\", "/").rsplit("/", 1)[-1]
+
+    return candidate or f"download-{datetime.now():%Y%m%d-%H%M%S}"
+
+
+def unique_destination(parent: Path, filename: str) -> Path:
+    """Return a non-existing path in parent, adding ' (1)', ' (2)', ... if needed."""
+    candidate = parent / filename
+    if not candidate.exists():
+        return candidate
+
+    stem, suffix = os.path.splitext(filename)
+    for index in range(1, 1000):
+        candidate = parent / f"{stem} ({index}){suffix}"
+        if not candidate.exists():
+            return candidate
+
+    raise UrlImportError("Too many files with the same name in this folder.", 409)
+
+
+def fetch_url_to_folder(url: str, parent: Path) -> Tuple[Path, int]:
+    """
+    Download a remote URL into `parent` and return (path, bytes_written).
+    Redirects are followed manually so every hop is validated. Data is written to a
+    '.part' file first and only renamed into place once the download succeeds.
+    """
+    session = requests.Session()
+    response: Optional[requests.Response] = None
+    current_url = url
+
+    try:
+        for _hop in range(URL_IMPORT_MAX_REDIRECTS + 1):
+            validate_remote_url(current_url)
+
+            try:
+                response = session.get(
+                    current_url,
+                    stream=True,
+                    allow_redirects=False,
+                    timeout=URL_IMPORT_TIMEOUT,
+                    headers={
+                        "User-Agent": "Pi5drain/1.0 (web uploader)",
+                        "Accept": "*/*",
+                        "Accept-Encoding": "identity",
+                    },
+                )
+            except requests.exceptions.Timeout:
+                raise UrlImportError("The web server took too long to respond.", 504)
+            except requests.exceptions.SSLError:
+                raise UrlImportError("The link's HTTPS certificate could not be verified.", 502)
+            except requests.exceptions.RequestException as exc:
+                raise UrlImportError(f"Could not reach that link: {exc}", 502)
+
+            if response.status_code in (301, 302, 303, 307, 308):
+                location = response.headers.get("Location")
+                response.close()
+                response = None
+                if not location:
+                    raise UrlImportError("The link redirected without a destination.", 502)
+                current_url = urllib.parse.urljoin(current_url, location)
+                continue
+
+            break
+        else:
+            raise UrlImportError("The link redirected too many times.")
+
+        if response.status_code != 200:
+            status = response.status_code
+            response.close()
+            response = None
+            raise UrlImportError(f"The web server returned HTTP {status}.", 502)
+
+        raw_name = extract_remote_filename(response, current_url)
+        filename = sanitize_name(raw_name) or f"download-{datetime.now():%Y%m%d-%H%M%S}"
+        target = unique_destination(parent, filename)
+
+        content_length: Optional[int] = None
+        header_length = response.headers.get("Content-Length")
+        if header_length:
+            try:
+                content_length = int(header_length)
+            except ValueError:
+                content_length = None
+
+        if content_length == 0:
+            raise UrlImportError("That link returned an empty file.")
+
+        free_bytes = shutil.disk_usage(parent).free
+        if content_length is not None and content_length > free_bytes - URL_IMPORT_MIN_FREE_BYTES:
+            raise UrlImportError("Not enough free disk space for that file.", 507)
+
+        temp_path = target.with_name(f".{target.name}.{uuid.uuid4().hex[:8]}.part")
+        bytes_written = 0
+        logger.info("Importing URL '%s' -> '%s'", current_url, target.name)
+
+        try:
+            with open(temp_path, "wb") as handle:
+                for chunk in response.iter_content(chunk_size=URL_IMPORT_CHUNK_SIZE):
+                    if not chunk:
+                        continue
+                    handle.write(chunk)
+                    bytes_written += len(chunk)
+                    if bytes_written > free_bytes - URL_IMPORT_MIN_FREE_BYTES:
+                        raise UrlImportError("Not enough free disk space for that file.", 507)
+
+            if bytes_written == 0:
+                raise UrlImportError("That link returned an empty file.")
+
+            os.replace(temp_path, target)
+
+        except UrlImportError:
+            temp_path.unlink(missing_ok=True)
+            raise
+        except requests.exceptions.RequestException as exc:
+            temp_path.unlink(missing_ok=True)
+            raise UrlImportError(f"The download was interrupted: {exc}", 502)
+        except OSError as exc:
+            temp_path.unlink(missing_ok=True)
+            raise UrlImportError(f"Could not save the file: {exc}", 500)
+        except Exception:
+            temp_path.unlink(missing_ok=True)
+            raise
+
+        logger.info("Imported '%s' from the web (%s)", target.name, format_bytes(bytes_written))
+        return target, bytes_written
+
+    finally:
+        if response is not None:
+            response.close()
+        session.close()
+
+
+def queue_pixeldrain_upload(file_path: Path, rel_path: str, api_key: str) -> str:
+    """Register a background Pixeldrain upload job and start its worker thread."""
+    job_id = str(uuid.uuid4())[:8]
+    total_size = file_path.stat().st_size
+
+    with JOBS_LOCK:
+        ACTIVE_JOBS[job_id] = {
+            "id": job_id,
+            "filename": file_path.name,
+            "rel_path": rel_path,
+            "status": "queued",
+            "percent": 0,
+            "bytes_uploaded": 0,
+            "total_bytes": total_size,
+            "speed_str": "Connecting...",
+            "eta_str": "",
+            "created_at": time.time(),
+        }
+
+    thread = threading.Thread(
+        target=background_upload_worker,
+        args=(job_id, file_path, api_key),
+        daemon=True,
+    )
+    thread.start()
+    return job_id
 
 
 # ============================================================================
@@ -554,26 +827,7 @@ def api_upload_to_folder():
         job_id = None
         auto_upload = request.form.get("auto_upload") == "true" or config.get("auto_upload_on_add", False)
         if auto_upload and config.get("api_key"):
-            job_id = str(uuid.uuid4())[:8]
-            with JOBS_LOCK:
-                ACTIVE_JOBS[job_id] = {
-                    "id": job_id,
-                    "filename": filename,
-                    "rel_path": rel_path,
-                    "status": "queued",
-                    "percent": 0,
-                    "bytes_uploaded": 0,
-                    "total_bytes": file_size,
-                    "speed_str": "",
-                    "eta_str": "",
-                    "created_at": time.time()
-                }
-            thread = threading.Thread(
-                target=background_upload_worker,
-                args=(job_id, target_path, config["api_key"]),
-                daemon=True
-            )
-            thread.start()
+            job_id = queue_pixeldrain_upload(target_path, rel_path, config["api_key"])
 
         return jsonify({
             "success": True,
@@ -586,6 +840,48 @@ def api_upload_to_folder():
     except Exception as e:
         logger.error("Failed to save incoming file '%s': %s", filename, e)
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/upload-from-url", methods=["POST"])
+def api_upload_from_url():
+    """Download a file from a public web link into the folder (optionally upload it)."""
+    data = request.get_json(silent=True) or {}
+    raw_url = str(data.get("url", "")).strip()
+    subpath = str(data.get("path", "")).strip()
+
+    if not raw_url:
+        return jsonify({"success": False, "error": "Paste a web link first."}), 400
+
+    parent = resolve_subpath(subpath)
+    if parent is None:
+        return jsonify({"success": False, "error": "Invalid path (traversal blocked)."}), 403
+    if not parent.exists() or not parent.is_dir():
+        return jsonify({"success": False, "error": "Destination folder does not exist."}), 404
+
+    try:
+        target_path, file_size = fetch_url_to_folder(raw_url, parent)
+    except UrlImportError as err:
+        logger.warning("URL import failed for '%s': %s", raw_url, err.message)
+        return jsonify({"success": False, "error": err.message}), err.status_code
+    except Exception as exc:
+        logger.exception("Unexpected URL import error: %s", exc)
+        return jsonify({"success": False, "error": "Unexpected error while importing that link."}), 500
+
+    rel_path = get_relative_path(target_path)
+    config = load_config()
+    job_id = None
+    auto_upload = data.get("auto_upload") is True or config.get("auto_upload_on_add", False)
+    if auto_upload and config.get("api_key"):
+        job_id = queue_pixeldrain_upload(target_path, rel_path, config["api_key"])
+
+    return jsonify({
+        "success": True,
+        "filename": target_path.name,
+        "rel_path": rel_path,
+        "size": format_bytes(file_size),
+        "size_bytes": file_size,
+        "job_id": job_id
+    })
 
 
 @app.route("/api/upload-to-pixeldrain", methods=["POST"])
@@ -624,29 +920,7 @@ def api_upload_to_pixeldrain():
             if job_rel == safe_rel and job.get("status") in ["queued", "uploading"]:
                 return jsonify({"success": False, "error": "This file is already being uploaded.", "job_id": job["id"]}), 409
 
-    job_id = str(uuid.uuid4())[:8]
-    total_size = target.stat().st_size
-
-    with JOBS_LOCK:
-        ACTIVE_JOBS[job_id] = {
-            "id": job_id,
-            "filename": target.name,
-            "rel_path": safe_rel,
-            "status": "queued",
-            "percent": 0,
-            "bytes_uploaded": 0,
-            "total_bytes": total_size,
-            "speed_str": "Connecting...",
-            "eta_str": "",
-            "created_at": time.time()
-        }
-
-    thread = threading.Thread(
-        target=background_upload_worker,
-        args=(job_id, target, api_key),
-        daemon=True
-    )
-    thread.start()
+    job_id = queue_pixeldrain_upload(target, safe_rel, api_key)
 
     return jsonify({"success": True, "job_id": job_id, "status": "queued"})
 
@@ -762,8 +1036,19 @@ def api_clear_logs():
 # MAIN LAUNCHER
 # ============================================================================
 
+def configure_console_encoding() -> None:
+    """Avoid UnicodeEncodeError on legacy Windows code pages (cp1252/cp437)."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError, ValueError):
+            pass
+
+
 def main():
     global WATCHED_FOLDER
+
+    configure_console_encoding()
 
     parser = argparse.ArgumentParser(
         description="Raspberry Pi Web Interface for Pixeldrain Uploader",
